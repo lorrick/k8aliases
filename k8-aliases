@@ -1,15 +1,6 @@
 DEBUG=
 KUBECTL=kubectl
 
-# Aliases to set a Namespace and Label variable to use in k8s commands below.
-# e.g. kubectlns get pods == kubectl get pods -n ${KNS}
-#
-alias setnamespace='export KNS=${1};echo "Namespace set to: ${KNS}"'
-alias setlabel='export KLBL=${1};echo "Label set to: ${KLBL}"'
-alias shownamespace='echo ${KNS}'
-alias showlabel='echo ${KLBL}'
-######
-
 # Check to see if the Namespace ENV variable is set.
 checkns ()
 {
@@ -29,8 +20,25 @@ checklbl ()
 }
 
 # Set the prompt
-alias setprompt='PS1=\(ns:${KNS}\):$PS1' 
+setprompt ()
+{
+  [ ${1} = "true" ] && OLDPS1=$PS1 && PS1=\(ns:${KNS}\):$PS1
+  [ ${1} = "false" ] && PS1=$OLDPS1
+}
 
+# Set the Namespace variable
+setnamespace ()
+{
+  export KNS=${1}
+  echo "Namespace set to: ${KNS}"
+}
+
+# Set the Label variable
+setlabel ()
+{
+  export KLBL=${1}
+  echo "Label set to: ${KLBL}"
+}
 
 describepod ()
 {
@@ -63,6 +71,8 @@ showcontainers ()
 
 }
 
+alias shownamespace='echo ${KNS}'
+alias showlabel='echo ${KLBL}'
 alias searchns='${KUBECTL} get namespaces | grep $1'
 
 alias kubectlns='echo "Namespace=${KNS}";${KUBECTL} -n ${KNS} '
