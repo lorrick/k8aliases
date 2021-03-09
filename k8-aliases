@@ -1,0 +1,81 @@
+DEBUG=
+KUBECTL=kubectl
+
+# Check to see if the Namespace ENV variable is set.
+checkns ()
+{
+  if [[ -z ${KNS} ]]; then
+    echo "No namespace"
+    return 1
+  fi
+}
+
+# Check to see if the Label ENV variable is set.
+checklbl ()
+{
+  if [[ -z ${KLBL} ]]; then
+    echo "No label"
+    return 1
+  fi
+}
+
+# Set the prompt
+setprompt ()
+{
+  [ ${1} = "true" ] && OLDPS1=$PS1 && PS1=\(ns:${KNS}\):$PS1
+  [ ${1} = "false" ] && PS1=$OLDPS1
+}
+
+# Set the Namespace variable
+setnamespace ()
+{
+  export KNS=${1}
+  echo "Namespace set to: ${KNS}"
+}
+
+# Set the Label variable
+setlabel ()
+{
+  export KLBL=${1}
+  echo "Label set to: ${KLBL}"
+}
+
+describepod ()
+{
+  nons=0
+  nolbl=0
+  checkns && echo "Using namespace: ${KNS}" || nons=1
+  checklbl && echo "Using Label: ${KLBL}" || nolbl=1
+  [[ -n ${DEBUG} ]] && echo "NS:$nons  LBL:$nolbl"
+  [ $nons = "1" ] && [ $nolbl = "1" ] && echo "${KUBECTL} describe pod" && ${KUBECTL} describe pod && return 0
+  [ $nons = "0" ] && [ $nolbl = "1" ] && echo "${KUBECTL} describe pod -n ${KNS}" && ${KUBECTL} describe pod -n ${KNS} && return 0
+  [ $nons = "1" ] && [ $nolbl = "0" ] && echo ""${KUBECTL} describe pod -l ${KLBL} && ${KUBECTL} describe pod -l ${KLBL} && return 0
+  echo "${KUBECTL} describe pod $1 -n ${KNS} -l ${KLBL}"
+  ${KUBECTL} describe pod $1 -n ${KNS} -l ${KLBL}
+
+}
+
+showcontainers ()
+{
+  jsonpath='{"\nPod ---> Containers\n-------------------\n"}{range .items[*]}{.metadata.name}{"\n--->  "}{range .spec.containers[*]}{.name}{"\n      "}{end}{"\n\n"}'
+  nons=0
+  nolbl=0
+  checkns && echo "Using namespace: ${KNS}" || nons=1
+  checklbl && echo "Using Label: ${KLBL}" || nolbl=1
+  [[ -n ${DEBUG} ]] && echo "NS:$nons  LBL:$nolbl"
+  [ $nons = "1" ] && [ $nolbl = "1" ] && ${KUBECTL} get pods -o=jsonpath="${jsonpath}" && return 0
+  [ $nons = "0" ] && [ $nolbl = "1" ] && ${KUBECTL} get pods -n ${KNS} -o=jsonpath="${jsonpath}" && return 0
+  [ $nons = "1" ] && [ $nolbl = "0" ] && ${KUBECTL} get pods -l ${KLBL} -o=jsonpath="${jsonpath}" && return 0
+
+  ${KUBECTL} get pods $1 -n ${KNS} -l ${KLBL} -o=jsonpath="${jsonpath}"
+
+}
+
+alias shownamespace='echo ${KNS}'
+alias showlabel='echo ${KLBL}'
+alias searchns='${KUBECTL} get namespaces | grep $1'
+
+alias kubectlns='echo "Namespace=${KNS}";${KUBECTL} -n ${KNS} '
+alias kns='kubectlns'
+alias kubectllabel='${KUBECTL} --show-labels=true '
+alias klbl='kubectllabel'
