@@ -20,21 +20,8 @@ checklbl ()
 }
 
 # Set the prompt
-setprompt ()
-{
-  [ ${1} = "true" ] && OLDPS1=$PS1 && PS1=\(ns:${KNS}\):$PS1
-  [ ${1} = "false" ] && PS1=$OLDPS1
-}
+alias setprompt='PS1=\(ns:${KNS}\):$PS1' 
 
-alias setnamespace='export KNS=${1};echo "Namespace set to: ${KNS}"'
-alias setlabel='export KLBL=${1};echo "Label set to: ${KLBL}"'
-
-# Set the Label variable
-#setlabel ()
-#{
-#  export KLBL=${1}
-#  echo "Label set to: ${KLBL}"
-#}
 
 describepod ()
 {
@@ -66,6 +53,9 @@ showcontainers ()
   ${KUBECTL} get pods $1 -n ${KNS} -l ${KLBL} -o=jsonpath="${jsonpath}"
 
 }
+
+alias setnamespace='export KNS=${1};echo "Namespace set to: ${KNS}"'
+alias setlabel='export KLBL=${1};echo "Label set to: ${KLBL}"'
 
 alias shownamespace='echo ${KNS}'
 alias showlabel='echo ${KLBL}'
